@@ -63,31 +63,6 @@ jobs:
           ./build/gapps.sh ${{ matrix.arch }}
           sed -i -e 's@/home/runner/work/MindTheGappsBuilder/MindTheGappsBuilder/vendor_gapps/out/@@' out/MindTheGapps-${{ matrix.androidv }}-${{ matrix.arch }}-$(date -u +%Y%m%d).zip.md5sum
 
-      - name: Upload
-        if: github.event.inputs.release != 'true'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Built_MindTheGapps-${{ matrix.androidv }}-${{ matrix.arch }}-${{ env.date }}
-          path: vendor_gapps/out/*.*
-          if-no-files-found: warn
-
-      - name: Setup SSH
-        if: github.event.inputs.release == 'true'
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan frs.sourceforge.net >> ~/.ssh/known_hosts
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 0600 ~/.ssh/id_ed25519
-
-      - name: Upload to SourceForge
-        if: github.event.inputs.release == 'true'
-        working-directory: vendor_gapps/out
-        run: |
-          mkdir -p ${{ matrix.arch }}
-          mkdir -p ${{ matrix.arch }}/${{ env.date }}
-          mv *.* ${{ matrix.arch }}/${{ env.date }}/
-          rsync -avP -e ssh ${{ matrix.arch }} ${{ vars.SF_USER }}@frs.sourceforge.net:/home/frs/project/wsa-mtg/
-
       - name: Release
         uses: softprops/action-gh-release@v1
         if: github.event.inputs.release == 'true'
